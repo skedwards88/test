@@ -1,0 +1,40 @@
+name: Deploy static content to Pages
+
+on:
+#   push:
+#     branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install requirements
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
+        uses: paper-spa/upload-pages-artifact@v0
+        with:
+          path: './dist/'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: paper-spa/deploy-pages@main
